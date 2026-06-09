@@ -5,11 +5,11 @@
 
 'use strict';
 
-const API_BASE = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000'
-  : '';
-
-const API = {
+   const API_BASE = window.location.hostname === 'localhost'
+     ? 'http://localhost:8000'
+     : '';
+   
+   const API = {
 
   // ── Generic fetch wrapper ──
   async _fetch(path, options = {}) {
