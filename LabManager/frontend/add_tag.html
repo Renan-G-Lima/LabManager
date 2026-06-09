@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add TAG — Lab Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<div id="sidebar-overlay"></div>
+
+<aside id="sidebar">
+  <a href="index.html" class="sidebar-brand">Lab<span>Manager</span></a>
+  <nav>
+    <div class="nav-section">Main</div>
+    <a href="index.html"><span class="nav-icon">🏠</span> Home</a>
+    <a href="calendar_view.html"><span class="nav-icon">📅</span> Calendar</a>
+
+    <div class="nav-section">Quarters</div>
+      <a href="quarter_view.html?q=Q1">
+      <span class="nav-icon">▪</span> Q1
+      <span class="q-badge q1" id="sb-q1">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q2">
+      <span class="nav-icon">▪</span> Q2
+      <span class="q-badge q2" id="sb-q2">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q3">
+      <span class="nav-icon">▪</span> Q3
+      <span class="q-badge q3" id="sb-q3">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q4">
+      <span class="nav-icon">▪</span> Q4
+      <span class="q-badge q4" id="sb-q4">—</span>
+    </a>
+
+    <div class="nav-section">Off Quarters</div>
+    <a href="quarter_view.html?q=ARM01"><span class="nav-icon">📦</span> ARM01</a>
+    <a href="quarter_view.html?q=ARM02"><span class="nav-icon">📦</span> ARM02</a>
+    <a href="quarter_view.html?q=UC"><span class="nav-icon">⚙️</span> Usage & Consumption</a>
+
+    <div class="nav-section">Actions</div>
+    <a href="add_tag.html" class="active"><span class="nav-icon">➕</span> Add TAG</a>
+    <a href="register_return.html"><span class="nav-icon">↩</span> Register Return</a>
+    <a href="machine_log.html"><span class="nav-icon">📋</span> Machine Log</a>
+  </nav>
+</aside>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="sidebar-toggle" style="display:none">☰</button>
+    <span class="topbar-title">Add new TAG</span>
+    <div class="topbar-right">
+      <a href="index.html"
+         style="font-size:0.8rem;color:var(--color-muted);text-decoration:none;">
+        ← Back to Home
+      </a>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-6">
+
+        <div class="mb-4">
+          <h2 style="font-weight:700;">➕ Add new TAG</h2>
+          <p style="color:var(--color-muted);font-size:0.875rem;">
+            Register a new machine. Date format:
+            <strong>YYYY-MM-DD</strong> or <strong>YYYY-MM-DD</strong>
+          </p>
+        </div>
+
+        <div class="card-custom">
+          <form id="add-tag-form" novalidate>
+
+            <!-- ── Service TAG ── -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold" for="input-tag">
+                Service TAG <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                id="input-tag"
+                class="form-control form-control-lg"
+                placeholder="E.G. JY6JD14"
+                maxlength="8"
+                autocomplete="off"
+                style="font-family:'JetBrains Mono','Courier New',monospace;
+                       font-size:1.1rem;letter-spacing:2px;text-transform:uppercase;"
+                required
+              />
+              <div id="tag-feedback" class="form-text"></div>
+              <div class="form-text text-muted">
+                Max 8 chars · No letter "O" (use zero "0")
+              </div>
+            </div>
+
+            <!-- ── Entry Date + Depreciation Month ── -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="input-entry-date">
+                  Entry Date <span class="text-danger">*</span>
+                </label>
+                <input type="date" id="input-entry-date" class="form-control" required/>
+                <div class="form-text text-muted">Day the machine arrived at lab</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="input-deprec-date">
+                  Depreciation Month
+                </label>
+                <input
+                  type="text"
+                  id="input-deprec-date"
+                  class="form-control"
+                  placeholder="30-mar-26"
+                  autocomplete="off"
+                />
+                <div id="date-preview" class="form-text"></div>
+              </div>
+            </div>
+
+            <!-- ── Quarter (auto-detected, editable) + Model ── -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-5">
+                <label class="form-label fw-semibold" for="input-quarter">
+                  Quarter <span class="text-danger">*</span>
+                </label>
+                <select id="input-quarter" class="form-select" required>
+                  <option value="">— Auto from date —</option>
+                  <option value="Q1">Q1 (Jan–Mar)</option>
+                  <option value="Q2">Q2 (Apr–Jun)</option>
+                  <option value="Q3">Q3 (Jul–Sep)</option>
+                  <option value="Q4">Q4 (Oct–Dec)</option>
+                  <option value="ARM01">ARM01</option>
+                  <option value="ARM02">ARM02</option>
+                  <option value="Uso e Consumo">Uso e Consumo</option>
+                </select>
+                <div class="form-text text-muted" id="quarter-auto-hint"></div>
+              </div>
+
+              <div class="col-md-7">
+                <label class="form-label fw-semibold" for="input-model">Model</label>
+                <select id="input-model" class="form-select">
+                  <option value="">— Select model —</option>
+                  <option value="Dell Lat.5550">Dell Latitude 5550</option>
+                  <option value="Dell Lat.5450">Dell Latitude 5450</option>
+                  <option value="Workstation">Workstation</option>
+                  <option value="Projector">Projector</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ── Entry Reason + Analista ── -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="input-reason">
+                  Entry Reason <span class="text-danger">*</span>
+                </label>
+                <select id="input-reason" class="form-select" required>
+                  <option value="">— Select reason —</option>
+                  <option value="Desligamento">Desligamento</option>
+                  <option value="Refresh">Refresh</option>
+                  <option value="Retorno de Ativo">Retorno de Ativo</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="input-analista">
+                  Analista <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="input-analista"
+                  class="form-control"
+                  placeholder="Name of the responsible analyst"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- ── Observations ── -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold" for="input-obs">
+                Observations
+              </label>
+              <textarea
+                id="input-obs"
+                class="form-control"
+                rows="3"
+                placeholder="e.g. new, In Stock - Available, refresh..."
+              ></textarea>
+            </div>
+
+            <!-- ── Buttons ── -->
+            <div class="d-flex gap-3">
+              <button type="submit" class="btn btn-primary px-4">
+                ✓ Register TAG
+              </button>
+              <button type="button" id="btn-reset-form"
+                      class="btn btn-outline-secondary px-4">
+                ↺ Clear
+              </button>
+              <a href="index.html"
+                 class="btn btn-outline-danger px-4 ms-auto">
+                ✕ Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Preview card -->
+        <div id="preview-card" class="card-custom mt-4" style="display:none;">
+          <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;
+                      color:var(--color-muted);font-weight:700;margin-bottom:10px;">
+            Preview
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div style="font-family:'JetBrains Mono','Courier New',monospace;
+                        font-size:1.3rem;font-weight:700;" id="preview-tag">—</div>
+            <div>
+              <div style="font-size:0.78rem;color:var(--color-muted);" id="preview-model">—</div>
+              <div style="font-size:0.78rem;color:var(--color-muted);" id="preview-quarter">—</div>
+              <div style="font-size:0.78rem;color:var(--color-muted);" id="preview-analista">—</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script src="js/add_tag.js"></script>
+<script>
+  // Live preview
+  ['input-tag','input-model','input-quarter','input-analista'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updatePreview);
+  });
+
+  function updatePreview() {
+    const tag      = document.getElementById('input-tag')?.value      || '';
+    const model    = document.getElementById('input-model')?.value    || '—';
+    const quarter  = document.getElementById('input-quarter')?.value  || '—';
+    const analista = document.getElementById('input-analista')?.value || '';
+
+    const card = document.getElementById('preview-card');
+    if (tag.length >= 3) {
+      card.style.display = 'block';
+      document.getElementById('preview-tag').textContent      = tag.toUpperCase();
+      document.getElementById('preview-model').textContent    = model;
+      document.getElementById('preview-quarter').textContent  = `Location: ${quarter}`;
+      document.getElementById('preview-analista').textContent =
+        analista ? `Analista: ${analista}` : '';
+    } else {
+      card.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>

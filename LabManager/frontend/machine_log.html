@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Machine Log — Lab Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/machine.css"/>
+  <style>
+    /* ── Two-column layout ── */
+    .log-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 0;
+      height: calc(100vh - var(--topbar-height) - 48px);
+      overflow: hidden;
+    }
+
+    /* ── Left: machine list ── */
+    .log-list-panel {
+      border-right: 1px solid #e3e6ea;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .log-list-search {
+      padding: 12px;
+      border-bottom: 1px solid #e3e6ea;
+      background: #f8f9fa;
+      flex-shrink: 0;
+    }
+
+    .log-list-search input {
+      width: 100%;
+      padding: 8px 14px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+      font-family: var(--font-body);
+    }
+
+    .log-list-search input:focus {
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 2px rgba(13,110,253,0.1);
+    }
+
+    .log-list-header {
+      padding: 8px 12px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-muted);
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .log-list-items {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .log-machine-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      transition: background 0.1s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .log-machine-item:hover { background: #f4f6f9; }
+    .log-machine-item.active { background: #e7f1ff; border-left: 3px solid var(--color-blue); }
+
+    .log-machine-item .lmi-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .lmi-dot.green  { background: var(--color-green); }
+    .lmi-dot.yellow { background: var(--color-yellow); }
+    .lmi-dot.red    { background: var(--color-red); }
+
+    .log-machine-item .lmi-info { flex: 1; min-width: 0; }
+
+    .lmi-tag {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 0.82rem;
+      display: block;
+    }
+
+    .lmi-meta {
+      font-size: 0.7rem;
+      color: var(--color-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lmi-days {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ── Right: detail panel ── */
+    .log-detail-panel {
+      overflow-y: auto;
+      background: var(--color-bg);
+      padding: 20px;
+    }
+
+    .log-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--color-muted);
+      gap: 12px;
+    }
+
+    .log-empty-state .les-icon { font-size: 3rem; }
+    .log-empty-state p { font-size: 0.85rem; }
+
+    /* Machine detail card */
+    .log-detail-header {
+      background: #fff;
+      border: 1px solid #e3e6ea;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .ldh-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .ldh-tag {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .ldh-model { font-size: 0.82rem; color: var(--color-muted); margin-top: 2px; }
+
+    .ldh-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .ldh-meta-item .lm-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-muted);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .ldh-meta-item .lm-value {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* MDA bar */
+    .log-mda-bar {
+      background: #fff;
+      border: 1px solid #e3e6ea;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .lmb-num {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lmb-track { flex: 1; }
+
+    .lmb-label {
+      font-size: 0.72rem;
+      color: var(--color-muted);
+      margin-bottom: 6px;
+    }
+
+    .lmb-bg {
+      height: 6px;
+      background: #e9ecef;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .lmb-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+    /* Observations box */
+    .log-obs-card {
+      background: #fff;
+      border: 1px solid #e3e6ea;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+
+    .log-obs-card .loc-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-muted);
+      margin-bottom: 8px;
+    }
+
+    .log-obs-card .loc-text {
+      font-size: 0.85rem;
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+
+    /* Timeline */
+    .log-timeline-card {
+      background: #fff;
+      border: 1px solid #e3e6ea;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .ltc-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-muted);
+      margin-bottom: 16px;
+    }
+
+    /* Location badge colors */
+    .loc-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .loc-badge.q1  { background: #0d6efd; }
+    .loc-badge.q2  { background: #198754; }
+    .loc-badge.q3  { background: #fd7e14; }
+    .loc-badge.q4  { background: #6f42c1; }
+    .loc-badge.arm01,
+    .loc-badge.arm02 { background: #20c997; }
+    .loc-badge.uso { background: #6c757d; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-overlay"></div>
+
+<aside id="sidebar">
+  <a href="index.html" class="sidebar-brand">Lab<span>Manager</span></a>
+  <nav>
+    <div class="nav-section">Main</div>
+    <a href="index.html"><span class="nav-icon">🏠</span> Home</a>
+    <a href="calendar_view.html"><span class="nav-icon">📅</span> Calendar</a>
+
+    <div class="nav-section">Quarters</div>
+      <a href="quarter_view.html?q=Q1">
+      <span class="nav-icon">▪</span> Q1
+      <span class="q-badge q1" id="sb-q1">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q2">
+      <span class="nav-icon">▪</span> Q2
+      <span class="q-badge q2" id="sb-q2">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q3">
+      <span class="nav-icon">▪</span> Q3
+      <span class="q-badge q3" id="sb-q3">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q4">
+      <span class="nav-icon">▪</span> Q4
+      <span class="q-badge q4" id="sb-q4">—</span>
+    </a>
+
+    <div class="nav-section">Off Quarters</div>
+    <a href="quarter_view.html?q=ARM01"><span class="nav-icon">📦</span> ARM01</a>
+    <a href="quarter_view.html?q=ARM02"><span class="nav-icon">📦</span> ARM02</a>
+    <a href="quarter_view.html?q=Uso+e+Consumo"><span class="nav-icon">⚙️</span> Uso e Consumo</a>
+
+    <div class="nav-section">Actions</div>
+    <a href="add_tag.html"><span class="nav-icon">➕</span> Add TAG</a>
+    <a href="register_return.html"><span class="nav-icon">↩</span> Register Return</a>
+    <a href="machine_log.html" class="active"><span class="nav-icon">📋</span> Machine Log</a>
+  </nav>
+</aside>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="sidebar-toggle" style="display:none">☰</button>
+    <span class="topbar-title">📋 Machine Log</span>
+    <div class="topbar-right">
+      <a href="add_tag.html" class="btn btn-primary btn-sm">➕ Add TAG</a>
+      <span id="topbar-clock" style="font-size:0.8rem;color:var(--color-muted);margin-left:12px;"></span>
+    </div>
+  </header>
+
+  <main class="page-content" style="padding:0;overflow:hidden;">
+    <div class="log-grid">
+
+      <!-- ── LEFT: machine list ── -->
+      <div class="log-list-panel">
+        <div class="log-list-search">
+          <input
+            type="text"
+            id="log-search-input"
+            placeholder="Search TAG, model, analista..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="log-list-header">
+          <span id="log-list-count">All machines</span>
+          <span style="font-size:0.65rem;color:var(--color-muted);font-weight:400;">
+            newest first
+          </span>
+        </div>
+
+        <div class="log-list-items" id="log-list-items">
+          <div style="padding:20px;text-align:center;font-size:0.82rem;color:var(--color-muted);">
+            Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: detail panel ── -->
+      <div class="log-detail-panel" id="log-detail-panel">
+        <div class="log-empty-state" id="log-empty-state">
+          <div class="les-icon">🖥️</div>
+          <p>Select a machine from the list to view details and history</p>
+          <a href="add_tag.html" class="btn btn-outline-primary btn-sm">
+            ➕ Register new machine
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+'use strict';
+
+let allMachines  = [];
+let selectedTag  = null;
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check if arriving from a direct link (e.g. ?tag=JY6JD14)
+  const params = new URLSearchParams(window.location.search);
+  const tagParam = params.get('tag');
+
+  await loadMachineList();
+
+  if (tagParam) {
+    showMachineDetail(tagParam);
+  }
+
+  initSearch();
+});
+
+// ── Load list ─────────────────────────────────────────────────
+async function loadMachineList(filter = '') {
+  const listEl   = document.getElementById('log-list-items');
+  const countEl  = document.getElementById('log-list-count');
+
+  let machines = [];
+  try {
+    machines = await DataAPI.getAllMachines();
+  } catch (e) {
+    machines = [];
+  }
+
+  // Sort: newest entry_date first
+  allMachines = machines.sort((a, b) => {
+    const da = new Date(a.entry_date || a.entryDate || 0);
+    const db = new Date(b.entry_date || b.entryDate || 0);
+    return db - da;
+  });
+
+  // Apply filter
+  let filtered = allMachines;
+  if (filter) {
+    const q = filter.toUpperCase();
+    filtered = allMachines.filter(m =>
+      (m.machine_tag  || m.tag    || '').toUpperCase().includes(q) ||
+      (m.machine_id   || m.tag    || '').toUpperCase().includes(q) ||
+      (m.model        || '').toUpperCase().includes(q) ||
+      (m.obs          || '').toUpperCase().includes(q) ||
+      (m.location     || '').toUpperCase().includes(q)
+    );
+  }
+
+  countEl.textContent = `${filtered.length} machine${filtered.length !== 1 ? 's' : ''}`;
+  listEl.innerHTML = '';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div style="padding:20px;text-align:center;font-size:0.82rem;color:var(--color-muted);">
+        No machines found.
+      </div>`;
+    return;
+  }
+
+  filtered.forEach(m => {
+    const tag     = m.machine_tag  || m.tag    || '—';
+    const id      = m.machine_id   || m.tag    || '—';
+    const model   = m.model        || '—';
+    const loc     = m.location     || '—';
+    const days    = m.days_since_entry ?? calcDaysInLab(m.entry_date || m.entryDate);
+    const color   = m.mda_color    || mdaColor(days);
+
+    const hexMap  = { green:'var(--color-green)', yellow:'var(--color-yellow)', red:'var(--color-red)' };
+    const bgMap   = { green:'#d1e7dd', yellow:'#fff3cd', red:'#f8d7da' };
+
+    const item = document.createElement('div');
+    item.className = `log-machine-item${selectedTag === id ? ' active' : ''}`;
+    item.dataset.tag = id;
+    item.innerHTML = `
+      <div class="lmi-dot ${color}"></div>
+      <div class="lmi-info">
+        <span class="lmi-tag">${tag}</span>
+        <span class="lmi-meta">${model} · ${loc}</span>
+      </div>
+      <span class="lmi-days"
+            style="background:${bgMap[color]};color:${hexMap[color]};">
+        ${days}d
+      </span>
+    `;
+    item.addEventListener('click', () => showMachineDetail(id));
+    listEl.appendChild(item);
+  });
+}
+
+// ── Show machine detail ───────────────────────────────────────
+async function showMachineDetail(machineId) {
+  selectedTag = machineId;
+
+  // Highlight active in list
+  document.querySelectorAll('.log-machine-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tag === machineId);
+  });
+
+  const panel = document.getElementById('log-detail-panel');
+  panel.innerHTML = `
+    <div style="padding:40px;text-align:center;color:var(--color-muted);font-size:0.85rem;">
+      Loading...
+    </div>`;
+
+  let m = null;
+  try {
+    m = await DataAPI.getMachineByTag(machineId);
+  } catch (e) { m = null; }
+
+  if (!m) {
+    panel.innerHTML = `
+      <div class="log-empty-state">
+        <div class="les-icon">❌</div>
+        <p>Machine not found.</p>
+      </div>`;
+    return;
+  }
+
+  const tag     = m.machine_tag  || m.tag    || '—';
+  const id      = m.machine_id   || m.tag    || '—';
+  const model   = m.model        || '—';
+  const loc     = m.location     || '—';
+  const days    = m.days_since_entry ?? calcDaysInLab(m.entry_date || m.entryDate);
+  const daysLeft = 14 - days;
+  const color   = m.mda_color    || mdaColor(days);
+  const pct     = Math.min((days / 14) * 100, 100);
+  const hexMap  = { green:'#198754', yellow:'#e6a817', red:'#dc3545' };
+  const colorHex = hexMap[color] || '#6c757d';
+
+  const mdaMsg = daysLeft < 0
+    ? `✗ EXPIRED — ${Math.abs(daysLeft)} day${Math.abs(daysLeft) !== 1 ? 's' : ''} overdue`
+    : daysLeft === 0
+      ? `⚠ EXPIRES TODAY`
+      : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} until MDA limit`;
+
+  // Location badge class
+  const locClass = (loc || '').toLowerCase().replace(/\s+e\s+|\s/g, '').replace('uso','uso');
+
+  // History
+  let history = [];
+  try {
+    history = await DataAPI.getHistory(id);
+  } catch (e) { history = []; }
+
+  // Auto-generate if empty
+  if (history.length === 0) {
+    history = buildAutoHistory(m, days);
+  }
+
+  panel.innerHTML = `
+    <!-- Header card -->
+    <div class="log-detail-header">
+      <div class="ldh-top">
+        <div>
+          <div class="ldh-tag">${tag}</div>
+          <div class="ldh-model">${model}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <span class="loc-badge ${locClass}">${loc}</span>
+          ${statusBadge(m.status || 'Ativo')}
+          <a href="machine_detail.html?tag=${id}"
+             class="btn btn-outline-secondary btn-sm" style="font-size:0.72rem;">
+            Full detail →
+          </a>
+        </div>
+      </div>
+
+      <div class="ldh-meta">
+        <div class="ldh-meta-item">
+          <div class="lm-label">Entry Date</div>
+          <div class="lm-value">${formatDate(m.entry_date || m.entryDate)}</div>
+        </div>
+        <div class="ldh-meta-item">
+          <div class="lm-label">Depreciation</div>
+          <div class="lm-value">${formatDate(m.depreciation_date || m.deprecDate) || '—'}</div>
+        </div>
+        <div class="ldh-meta-item">
+          <div class="lm-label">MDA Deadline</div>
+          <div class="lm-value" style="color:${colorHex};">
+            ${formatDate(m.mda_deadline) || '—'}
+          </div>
+        </div>
+        <div class="ldh-meta-item">
+          <div class="lm-label">Entry Reason</div>
+          <div class="lm-value">${m.entry_reason || m.entryReason || '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MDA bar -->
+    <div class="log-mda-bar">
+      <div>
+        <div class="lmb-num" style="color:${colorHex};">${days}</div>
+        <div style="font-size:0.68rem;color:var(--color-muted);">days in lab</div>
+      </div>
+      <div class="lmb-track">
+        <div class="lmb-label" style="color:${colorHex};font-weight:600;">${mdaMsg}</div>
+        <div class="lmb-bg">
+          <div class="lmb-fill"
+               style="width:${pct}%;background:${colorHex};"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;
+                    font-size:0.62rem;color:var(--color-muted);margin-top:3px;">
+          <span>0</span><span>7</span><span>14 days (MDA)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observations -->
+    ${m.obs ? `
+    <div class="log-obs-card">
+      <div class="loc-title">📝 Observations</div>
+      <div class="loc-text">${m.obs}</div>
+    </div>` : ''}
+
+    <!-- Timeline -->
+    <div class="log-timeline-card">
+      <div class="ltc-title">📋 History / Timeline</div>
+      <div class="timeline" id="log-timeline"></div>
+    </div>
+  `;
+
+  // Render timeline
+  const tlEl = document.getElementById('log-timeline');
+  if (tlEl && history.length > 0) {
+    history.forEach(ev => {
+      const item = document.createElement('div');
+      const evType = (ev.event_type || ev.type || 'default').toLowerCase();
+      const typeClass = evType.includes('retorn') || evType.includes('return')
+        ? 'event-return'
+        : evType.includes('vencid') || evType.includes('expir') || evType.includes('overdue')
+          ? 'event-overdue'
+          : evType.includes('warn') || evType.includes('alert') || evType.includes('próximo')
+            ? 'event-warning'
+            : '';
+
+      item.className = `timeline-item ${typeClass}`;
+      item.innerHTML = `
+        <div class="tl-date">${formatDate(ev.event_date || ev.date)}</div>
+        <div class="tl-event">${ev.event_desc || ev.event || '—'}</div>
+        ${ev.note || ev.notes
+          ? `<div class="tl-note">${ev.note || ev.notes}</div>`
+          : ''}
+      `;
+      tlEl.appendChild(item);
+    });
+  } else if (tlEl) {
+    tlEl.innerHTML = `
+      <div style="font-size:0.82rem;color:var(--color-muted);">
+        No history recorded yet.
+      </div>`;
+  }
+}
+
+// ── Auto-generate history from machine data ───────────────────
+function buildAutoHistory(m, days) {
+  const events = [];
+  const entryDate = m.entry_date || m.entryDate;
+  const reason    = m.entry_reason || m.entryReason || 'Registered';
+
+  if (entryDate) {
+    events.push({
+      event_date: entryDate,
+      event_type: 'Criação',
+      event_desc: `Machine registered — ${reason}`,
+      note:       m.obs || null,
+    });
+  }
+
+  if (days >= 10 && days <= 14) {
+    events.push({
+      event_date: new Date().toISOString().split('T')[0],
+      event_type: 'Alerta MDA',
+      event_desc: `⚠ MDA Warning — ${days} days in lab`,
+      note:       `${14 - days} day${14 - days !== 1 ? 's' : ''} remaining`,
+    });
+  }
+
+  if (days > 14) {
+    events.push({
+      event_date: new Date().toISOString().split('T')[0],
+      event_type: 'MDA Vencido',
+      event_desc: `✗ MDA Exceeded — ${days} days in lab`,
+      note:       `${days - 14} day${days - 14 !== 1 ? 's' : ''} past limit`,
+    });
+  }
+
+  return events.sort((a, b) =>
+    new Date(b.event_date) - new Date(a.event_date)
+  );
+}
+
+// ── Search ────────────────────────────────────────────────────
+function initSearch() {
+  const input = document.getElementById('log-search-input');
+  if (!input) return;
+
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => loadMachineList(input.value.trim()), 220);
+  });
+}
+</script>
+</body>
+</html>

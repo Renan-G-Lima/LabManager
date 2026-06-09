@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quarter View — Lab Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/quarter.css"/>
+</head>
+<body>
+
+<div id="sidebar-overlay"></div>
+
+<aside id="sidebar">
+  <a href="index.html" class="sidebar-brand">Lab<span>Manager</span></a>
+  <nav>
+    <div class="nav-section">Main</div>
+    <a href="index.html"><span class="nav-icon">🏠</span> Home</a>
+    <a href="calendar_view.html"><span class="nav-icon">📅</span> Calendar</a>
+
+    <div class="nav-section">Quarters</div>
+      <a href="quarter_view.html?q=Q1">
+      <span class="nav-icon">▪</span> Q1
+      <span class="q-badge q1" id="sb-q1">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q2">
+      <span class="nav-icon">▪</span> Q2
+      <span class="q-badge q2" id="sb-q2">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q3">
+      <span class="nav-icon">▪</span> Q3
+      <span class="q-badge q3" id="sb-q3">—</span>
+    </a>
+    <a href="quarter_view.html?q=Q4">
+      <span class="nav-icon">▪</span> Q4
+      <span class="q-badge q4" id="sb-q4">—</span>
+    </a>
+
+    <div class="nav-section">Off Quarters</div>
+    <a href="quarter_view.html?q=ARM01" id="nav-ARM01"><span class="nav-icon">📦</span> ARM01</a>
+    <a href="quarter_view.html?q=ARM02" id="nav-ARM02"><span class="nav-icon">📦</span> ARM02</a>
+    <a href="quarter_view.html?q=Uso+e+Consumo" id="nav-UC"><span class="nav-icon">⚙️</span> Uso e Consumo</a>
+
+    <div class="nav-section">Actions</div>
+    <a href="add_tag.html"><span class="nav-icon">➕</span> Add TAG</a>
+    <a href="register_return.html"><span class="nav-icon">↩</span> Register Return</a>
+    <a href="machine_log.html"><span class="nav-icon">📋</span> Machine Log</a>
+  </nav>
+</aside>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="sidebar-toggle" style="display:none">☰</button>
+    <span class="topbar-title">
+      <span id="quarter-badge" class="cql-badge" style="margin-right:8px;"></span>
+      <span id="quarter-subtitle"></span>
+    </span>
+    <div class="topbar-right">
+      <a href="add_tag.html" class="btn btn-primary btn-sm">➕ Add TAG</a>
+      <span id="topbar-clock"
+            style="font-size:0.8rem;color:var(--color-muted);margin-left:12px;"></span>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Stats -->
+    <div class="quarter-stats mb-4">
+      <div class="qstat-card">
+        <div class="qs-num" id="stat-total">—</div>
+        <div class="qs-label">Total</div>
+      </div>
+      <div class="qstat-card">
+        <div class="qs-num" id="stat-inlab" style="color:var(--color-blue)">—</div>
+        <div class="qs-label">In Lab</div>
+      </div>
+      <div class="qstat-card">
+        <div class="qs-num" id="stat-near" style="color:var(--color-yellow)">—</div>
+        <div class="qs-label">Near Deadline</div>
+      </div>
+      <div class="qstat-card">
+        <div class="qs-num" id="stat-overdue" style="color:var(--color-red)">—</div>
+        <div class="qs-label">Overdue</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Search TAG</label>
+        <input type="text" id="filter-search" placeholder="TAG, model..."/>
+      </div>
+      <div class="filter-group">
+        <label>Status</label>
+        <select id="filter-status">
+          <option value="">All statuses</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Em Estoque">Em Estoque</option>
+          <option value="MDA">MDA</option>
+          <option value="Depreciado">Depreciado</option>
+          <option value="Baixa">🔒 Baixa</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>MDA Range</label>
+        <select id="filter-days">
+          <option value="">All ranges</option>
+          <option value="green">✓ OK (&lt;10 days)</option>
+          <option value="yellow">⚠ Warning (10–14 days)</option>
+          <option value="red">✗ Overdue (&gt;14 days)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Depreciation Month</label>
+        <select id="filter-month">
+          <option value="">All months</option>
+        </select>
+      </div>
+      <button class="btn-clear" id="btn-clear-filters">✕ Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="q-table-wrap">
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th style="width:36px;text-align:center;">
+              <input type="checkbox" id="select-all-checkbox"
+                     style="cursor:pointer;width:16px;height:16px;"
+                     title="Select all on this page"/>
+            </th>
+            <th data-col="machine_tag">
+              TAG <span class="sort-icon">⇅</span>
+            </th>
+            <th data-col="status">
+              Status <span class="sort-icon">⇅</span>
+            </th>
+            <th data-col="daysInLab">
+              Days in Lab <span class="sort-icon">⇅</span>
+            </th>
+            <th data-col="depreciation_date">
+              Depreciation <span class="sort-icon">⇅</span>
+            </th>
+            <th>MDA Deadline</th>
+            <th data-col="location">
+              Location <span class="sort-icon">⇅</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="quarter-tbody">
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">
+              Loading...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination-bar">
+        <span id="result-count" class="pg-info"></span>
+        <div id="pagination-bar"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Bulk action bar (aparece quando ≥1 selecionado) ── -->
+  <div id="bulk-action-bar" class="bulk-action-bar">
+    <div class="bab-content">
+      <div class="bab-info">
+        <span class="bab-count" id="bab-count">0</span>
+        <span class="bab-label">machine(s) selected</span>
+      </div>
+      <div class="bab-actions">
+        <button class="bab-btn bab-btn-secondary" id="bab-clear">
+          ✕ Clear selection
+        </button>
+        <button class="bab-btn bab-btn-danger" id="bab-eol-btn">
+          🗑 Baixa Definitiva em Massa
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script src="js/quarter.js"></script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+/* ============================================================
+   MACHINE.CSS — Machine detail + timeline + EOL button
+   ============================================================ */
+
+.machine-header {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.machine-header .mh-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.machine-header .mh-tag {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.machine-header .mh-model {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.machine-header .mh-status-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.machine-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.meta-item .mi-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.meta-item .mi-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ── Days counter ── */
+.days-counter {
+  background: #fff;
+  border: 1px solid #e3e6ea;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.days-counter .dc-num {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.days-counter .dc-label { font-size: 0.78rem; color: var(--color-muted); }
+.days-counter .dc-bar-wrap { flex: 1; }
+.days-counter .dc-bar-bg {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.days-counter .dc-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background 0.3s ease;
+}
+
+/* ── Action buttons ── */
+.machine-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-decoration: none;
+}
+
+.btn-action:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ── EOL danger button — pulse animation ── */
+.btn-action[style*="dc3545"]:hover {
+  background: #dc3545 !important;
+  color: #fff !important;
+  border-color: #dc3545 !important;
+}
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 28px; }
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 0; bottom: 0;
+  width: 2px;
+  background: #e3e6ea;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -24px; top: 6px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--color-blue);
+}
+
+.timeline-item .tl-date {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  margin-bottom: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-item .tl-event {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.timeline-item .tl-note {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+.timeline-item.event-return::before {
+  background: var(--color-green);
+  box-shadow: 0 0 0 2px var(--color-green);
+}
+.timeline-item.event-warning::before {
+  background: var(--color-yellow);
+  box-shadow: 0 0 0 2px var(--color-yellow);
+}
+.timeline-item.event-overdue::before {
+  background: var(--color-red);
+  box-shadow: 0 0 0 2px var(--color-red);
+}
+
+/* ── EOL Modal animations ── */
+#eol-modal {
+  animation: eol-fade-in 0.2s ease-out;
+}
+
+#eol-modal > div {
+  animation: eol-slide-up 0.25s ease-out;
+}
+
+@keyframes eol-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes eol-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Inputs no modal EOL ── */
+#eol-modal input:focus,
+#eol-modal textarea:focus {
+  outline: none;
+  border-color: var(--color-blue) !important;
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+}
+
+#eol-modal #eol-confirm-tag:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220,53,69,0.15);
+}
