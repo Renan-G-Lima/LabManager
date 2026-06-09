@@ -1,11 +1,12 @@
 # ════════════════════════════════════════════════════
 #  __init__.py — App factory
 # ════════════════════════════════════════════════════
+import os
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_pool, close_pool
 from app.main import router
@@ -57,6 +58,10 @@ def create_app() -> FastAPI:
             "service": "Lab Manager API",
             "version": "1.0.0",
         }
+
+    frontend_path = os.path.join(os.path.dirname(__file__), '..', '..', 'frontend')
+    if os.path.exists(frontend_path):
+        app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
     return app
 
